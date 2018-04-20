@@ -12,7 +12,8 @@ public class Commodity extends DataSupport {
     private String name;
     private String category;
     private double price;
-    private int imageId;
+    private String imagePath;
+  //  private byte[] imagePath;
     private String description;
 
     public String getOwner() {
@@ -31,8 +32,13 @@ public class Commodity extends DataSupport {
         return price;
     }
 
-    public int getImageId() {
-        return imageId;
+//    public byte[] getImagePath() {
+//        return imagePath;
+//    }
+
+
+    public String getImagePath() {
+        return imagePath;
     }
 
     public String getDescription() {
@@ -55,8 +61,13 @@ public class Commodity extends DataSupport {
         this.price = price;
     }
 
-    public void setImageId(int imageId) {
-        this.imageId = imageId;
+//    public void setImagePath(byte[] imagePath) {
+//        this.imagePath = imagePath;
+//    }
+
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public void setDescription(String description) {

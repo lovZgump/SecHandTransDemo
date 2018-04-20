@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.litepal.crud.DataSupport;
+import org.litepal.tablemanager.Connector;
 
 import java.util.List;
 
@@ -35,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        DataSupport.deleteAll(Account.class, "username = ?", "King");
- //       this.initApp();
+        //DataSupport.deleteAll(Commodity.class, "owner = ?", "Admin");
+//        this.initApp();
 
 
 
@@ -104,22 +105,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void initApp(){
-//        Connector.getDatabase();
+        Connector.getDatabase();
 //        Account administrator = new Account();
 //        administrator.setUsername("Admin");
 //        administrator.setPassword("123456");
 //        administrator.save();
 
-        for(int i = 0 ; i < 10 ; i++) {
-            Commodity commodity = new Commodity();
-            commodity.setOwner("admin");
-            commodity.setCategory("电子产品");
-            commodity.setName("iphonex");
-            commodity.setPrice(8000);
-            commodity.setImageId(R.drawable.ic_iphonex);
-            commodity.setDescription("很漂亮的手机");
-            commodity.save();
-        }
+//        for(int i = 0 ; i < 10 ; i++) {
+//            Commodity commodity = new Commodity();
+//            commodity.setOwner("admin");
+//            commodity.setCategory("电子产品");
+//            commodity.setName("iphonex");
+//            commodity.setPrice(8000);
+//            commodity.setImagePath();
+//            commodity.setDescription("很漂亮的手机");
+//            commodity.save();
+//        }
     }
 
     private void attemptLogin(){
