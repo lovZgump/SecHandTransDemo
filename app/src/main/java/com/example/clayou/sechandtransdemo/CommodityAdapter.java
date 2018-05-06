@@ -53,8 +53,6 @@ public class CommodityAdapter extends ArrayAdapter<Commodity> {
             viewHolder = (ViewHolder) view.getTag();
         }
 
-
-
         // 获取图片
 //        byte[] images = commodity.getImagePath();
 //        Bitmap bitmap = BitmapFactory.decodeByteArray(images, 0, images.length);

@@ -1,13 +1,19 @@
 package com.example.clayou.sechandtransdemo;
 
+import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -17,6 +23,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -31,6 +40,7 @@ public class UserInfoActivity extends AppCompatActivity
     // 实现按两次返回键退出应用
     private static boolean isExit;
 
+    @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
 
         @Override
@@ -41,10 +51,10 @@ public class UserInfoActivity extends AppCompatActivity
     };
 
     private String username;
+    private ImageView avatar;
 
     private List<Commodity> commodityList = new ArrayList<>();
-
-    private CommodityAdapter adapter;
+    private CommodityRecyAdapter commodityRecyAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +71,6 @@ public class UserInfoActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
                 Intent intent = new Intent(UserInfoActivity.this, AddCommActivity.class);
                 intent.putExtra("owner", username);
                 startActivityForResult(intent, 1);
@@ -78,12 +86,76 @@ public class UserInfoActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
-        Log.d("flag", "onCreate: i'm here");
         initCommodities();
-        adapter = new CommodityAdapter(UserInfoActivity.this, R.layout.commodity, commodityList);
-        ListView listView = findViewById(R.id.list_view);
-        listView.setAdapter(adapter);
+//        adapter = new CommodityAdapter(UserInfoActivity.this, R.layout.commodity, commodityList);
+//        ListView listView = findViewById(R.id.list_view);
+//        listView.setAdapter(adapter);
+
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        recyclerView.setLayoutManager(layoutManager);
+        commodityRecyAdapter = new CommodityRecyAdapter(commodityList);
+        recyclerView.setAdapter(commodityRecyAdapter);
+
+        NavigationView navView = findViewById(R.id.nav_view);
+        View headerView = navView.getHeaderView(0);
+        avatar = headerView.findViewById(R.id.avatar);
+        avatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                chooseAvatar();
+            }
+        });
+    }
+
+    // 换头像
+    private void chooseAvatar() {
+
+        final Dialog bottomDialog = new Dialog(this, R.style.BottomDialog);
+        View contentView = LayoutInflater.from(this).inflate(R.layout.dialog_content_normal, null);
+        bottomDialog.setContentView(contentView);
+        ViewGroup.LayoutParams layoutParams = contentView.getLayoutParams();
+        layoutParams.width = getResources().getDisplayMetrics().widthPixels;
+        contentView.setLayoutParams(layoutParams);
+        bottomDialog.getWindow().setGravity(Gravity.BOTTOM);
+
+        // 设置显示动画
+        bottomDialog.getWindow().setWindowAnimations(R.style.BottomDialog_Animation);
+
+        // 设置点击外围取消
+        bottomDialog.setCanceledOnTouchOutside(true);
+        bottomDialog.show();
+
+        Button btn_gallery = bottomDialog.getWindow().findViewById(R.id.btn_gallery);
+        Button btn_photo = bottomDialog.getWindow().findViewById(R.id.btn_photo);
+        Button btn_cancel = bottomDialog.getWindow().findViewById(R.id.btn_cancel);
+
+
+        btn_gallery.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("InlinedApi")
+            @Override
+            public void onClick(View view) {
+                //selectPicInGallery();
+                bottomDialog.dismiss();
+            }
+        });
+
+        btn_photo.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("InlinedApi")
+            @Override
+            public void onClick(View view) {
+                //takePhoto();
+                bottomDialog.dismiss();
+            }
+        });
+
+        btn_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomDialog.dismiss();
+            }
+        });
+
     }
 
     @Override
@@ -107,7 +179,7 @@ public class UserInfoActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         initCommodities();
-                        adapter.notifyDataSetChanged();
+                        commodityRecyAdapter.notifyDataSetChanged();
                     }
                 });
             }
@@ -225,7 +297,5 @@ public class UserInfoActivity extends AppCompatActivity
             System.exit(0);
         }
     }
-
-
 
 }

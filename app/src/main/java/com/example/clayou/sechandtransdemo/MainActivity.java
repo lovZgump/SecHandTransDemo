@@ -1,7 +1,10 @@
 package com.example.clayou.sechandtransdemo;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,13 +34,25 @@ public class MainActivity extends AppCompatActivity {
     private String username;
     private String password;
 
+    private boolean isExit;
+
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            isExit = false;
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //DataSupport.deleteAll(Commodity.class, "owner = ?", "Admin");
-//        this.initApp();
+        this.initApp();
 
 
 
@@ -106,21 +121,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void initApp(){
         Connector.getDatabase();
-//        Account administrator = new Account();
-//        administrator.setUsername("Admin");
-//        administrator.setPassword("123456");
-//        administrator.save();
-
-//        for(int i = 0 ; i < 10 ; i++) {
-//            Commodity commodity = new Commodity();
-//            commodity.setOwner("admin");
-//            commodity.setCategory("电子产品");
-//            commodity.setName("iphonex");
-//            commodity.setPrice(8000);
-//            commodity.setImagePath();
-//            commodity.setDescription("很漂亮的手机");
-//            commodity.save();
-//        }
     }
 
     private void attemptLogin(){
@@ -153,6 +153,29 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, UserInfoActivity.class);
             intent.putExtra("username", username);
             startActivity(intent);
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            exit();
+            return  false;
+        } else {
+            return super.onKeyDown(keyCode, event);
+        }
+    }
+
+    public void exit() {
+        if (!isExit) {
+            isExit = true;
+            Toast.makeText(this, "再按一次返回键退出应用", Toast.LENGTH_SHORT).show();
+            mHandler.sendEmptyMessageDelayed(0, 2000);
+        } else {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            startActivity(intent);
+            System.exit(0);
         }
     }
 

@@ -3,6 +3,7 @@ package com.example.clayou.sechandtransdemo;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
@@ -28,6 +30,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -64,7 +68,6 @@ public class AddCommActivity extends AppCompatActivity {
     private EditText inputDesc;
 
     private String owner;
-   // private byte[] commodityImage;
     private String filePath;
     private String commodityName;
     private String commodityCategory;
@@ -125,6 +128,7 @@ public class AddCommActivity extends AppCompatActivity {
                 showPopDialog();
             }
         });
+
     }
 
     @Override
@@ -157,7 +161,7 @@ public class AddCommActivity extends AppCompatActivity {
         bottomDialog.getWindow().setWindowAnimations(R.style.BottomDialog_Animation);
 
         // 设置点击外围取消
-        //bottomDialog.setCanceledOnTouchOutside(true);
+        bottomDialog.setCanceledOnTouchOutside(true);
         bottomDialog.show();
 
         Button btn_gallery = bottomDialog.getWindow().findViewById(R.id.btn_gallery);
@@ -355,29 +359,6 @@ public class AddCommActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to get image", Toast.LENGTH_SHORT).show();
         }
     }
-
-//    public static String getRealFilePath(final Context context, final Uri uri){
-//        if ( null == uri ) return null;
-//        final String scheme = uri.getScheme();
-//        String data = null;
-//        if ( scheme == null )
-//            data = uri.getPath();
-//        else if ( ContentResolver.SCHEME_FILE.equals( scheme ) ) {
-//            data = uri.getPath();
-//        } else if ( ContentResolver.SCHEME_CONTENT.equals( scheme ) ) {
-//            Cursor cursor = context.getContentResolver().query( uri, new String[] { MediaStore.Images.ImageColumns.DATA }, null, null, null );
-//            if ( null != cursor ) {
-//                if ( cursor.moveToFirst() ) {
-//                    int index = cursor.getColumnIndex( MediaStore.Images.ImageColumns.DATA );
-//                    if ( index > -1 ) {
-//                        data = cursor.getString( index );
-//                    }
-//                }
-//                cursor.close();
-//            }
-//        }
-//        return data;
-//    }
 
     private void release() {
 
