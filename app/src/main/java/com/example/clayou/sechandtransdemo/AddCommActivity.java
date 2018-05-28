@@ -3,7 +3,6 @@ package com.example.clayou.sechandtransdemo;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -19,7 +18,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.os.Bundle;
@@ -40,14 +38,16 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+
 import com.bumptech.glide.Glide;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.SaveListener;
 
 public class AddCommActivity extends AppCompatActivity {
 
@@ -75,6 +75,7 @@ public class AddCommActivity extends AppCompatActivity {
     private String commodityDesc;
 
     private Intent intent;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +121,6 @@ public class AddCommActivity extends AppCompatActivity {
             }
         });
 
-
         img = findViewById(R.id.img);
         img.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,6 +130,9 @@ public class AddCommActivity extends AppCompatActivity {
         });
 
     }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -244,6 +247,7 @@ public class AddCommActivity extends AppCompatActivity {
         startActivityForResult(intent, TAKE_PHOTO);
 
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -372,6 +376,7 @@ public class AddCommActivity extends AppCompatActivity {
         Log.d("newCommodity", "release: "+commodityPrice);
         Log.d("newCommodity", "release: "+commodityDesc);
         Log.d("newCommodity", "release: "+filePath);
+        Log.d("newCommodity", "release: "+owner);
 
 
 
@@ -386,7 +391,16 @@ public class AddCommActivity extends AppCompatActivity {
 
         newCommodity.setImagePath(filePath);
         newCommodity.setDescription(commodityDesc);
-        newCommodity.save();
+        newCommodity.save(new SaveListener<String>(){
+            @Override
+            public void done(String s, BmobException e) {
+                if(e == null){
+                    Toast.makeText(AddCommActivity.this, "发布商品成功", Toast.LENGTH_SHORT).show();
+                }else {
+                    Toast.makeText(AddCommActivity.this,"失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         setResult(RESULT_OK, intent);
         finish();
     }

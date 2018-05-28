@@ -1,13 +1,19 @@
 package com.example.clayou.sechandtransdemo;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -22,6 +28,11 @@ import org.litepal.tablemanager.Connector;
 
 import java.util.List;
 
+import cn.bmob.v3.Bmob;
+import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
+
 public class MainActivity extends AppCompatActivity {
 
     private SharedPreferences pref;
@@ -33,6 +44,13 @@ public class MainActivity extends AppCompatActivity {
 
     private String username;
     private String password;
+
+    private View mProgressView;
+    //private View mLoginFormView;
+
+    private UserLoginTask mAuthTask = null;
+
+    private int flag = 1;
 
     private boolean isExit;
 
@@ -51,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        Bmob.initialize(this, "ea5318efd3001a38058c1bb32a2dc57d");
+
         //DataSupport.deleteAll(Commodity.class, "owner = ?", "Admin");
         this.initApp();
 
@@ -61,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
         accountEdit = findViewById(R.id.input_account);
         passwordEdit = findViewById(R.id.input_password);
         rememberPass = findViewById(R.id.remember_pass);
+        mProgressView = findViewById(R.id.login_progress);
+
 
         passwordEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -124,35 +147,92 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attemptLogin(){
+
+        if (mAuthTask != null) {
+            return;
+        }
+
+        // Reset errors.
+        accountEdit.setError(null);
+        passwordEdit.setError(null);
+
         username = accountEdit.getText().toString();
         password = passwordEdit.getText().toString();
 
-//                Log.d("account", username);
-//                Log.d("password", "123");
-//                Log.d("password", password);
+        boolean cancel = false;
+        View focusView = null;
+
+
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+           // showProgress(true);
+            mAuthTask = new UserLoginTask(username, password);
+            mAuthTask.execute((Void) null);
+        }
 
         // 判断用户名、密码
-        List<Account> accounts =  DataSupport.where("username = ?", username).find(Account.class);
+//        List<Account> accounts =  DataSupport.where("username = ?", username).find(Account.class);
+//
+//
+//        if(accounts.isEmpty() || !(accounts.get(0).getPassword().equals(password))){
+//            Toast.makeText(MainActivity.this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+//        }else if(accounts.get(0).getPassword().equals(password)) {
+//            editor = pref.edit();
+//            if (rememberPass.isChecked()) {
+//                editor.putBoolean("remember_password", true);
+//                editor.putString("username", username);
+//                editor.putString("password", password);
+//            } else {
+//                editor.putBoolean("remember_password", true);
+//                editor.putString("username", username);
+//                editor.putString("password", "");
+//            }
+//            editor.apply();
+//
+//            Intent intent = new Intent(MainActivity.this, UserInfoActivity.class);
+//            intent.putExtra("username", username);
+//            startActivity(intent);
+//        }
+    }
 
+    /**
+     * Shows the progress UI and hides the login form.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-        if(accounts.isEmpty() || !(accounts.get(0).getPassword().equals(password))){
-            Toast.makeText(MainActivity.this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
-        }else if(accounts.get(0).getPassword().equals(password)) {
-            editor = pref.edit();
-            if (rememberPass.isChecked()) {
-                editor.putBoolean("remember_password", true);
-                editor.putString("username", username);
-                editor.putString("password", password);
-            } else {
-                editor.putBoolean("remember_password", true);
-                editor.putString("username", username);
-                editor.putString("password", "");
-            }
-            editor.apply();
+//            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+//            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+//                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+//                @Override
+//                public void onAnimationEnd(Animator animation) {
+//                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+//                }
+//            });
 
-            Intent intent = new Intent(MainActivity.this, UserInfoActivity.class);
-            intent.putExtra("username", username);
-            startActivity(intent);
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            //mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -179,4 +259,81 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * Represents an asynchronous login/registration task used to authenticate
+     * the user.
+     */
+    public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
+
+        private final String mEmail;
+        private final String mPassword;
+
+        UserLoginTask(String email, String password) {
+            mEmail = email;
+            mPassword = password;
+        }
+
+        @Override
+        protected Integer doInBackground(Void... Params) {
+            // TODO: attempt authentication against a network service.
+            BmobQuery<Account> query = new BmobQuery<Account>();
+            query.addWhereEqualTo("username", username);
+            query.findObjects(new FindListener<Account>() {
+                @Override
+                public void done(List<Account> list, BmobException e) {
+                    if(list.isEmpty() || !(list.get(0).getPassword().equals(password))){
+                        //Toast.makeText(MainActivity.this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                        flag = 0;
+                    }else if(list.get(0).getPassword().equals(password)) {
+                        flag = 1;
+                    }
+                }
+            });
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            return flag;
+        }
+
+        @Override
+        protected void onPostExecute(final Integer flag) {
+            mAuthTask = null;
+            showProgress(false);
+
+            Log.d("bool", "onPostExecute: "+flag);
+
+            if (flag == 1) {
+                editor = pref.edit();
+                if (rememberPass.isChecked()) {
+                    editor.putBoolean("remember_password", true);
+                    editor.putString("username", username);
+                    editor.putString("password", password);
+                } else {
+                    editor.putBoolean("remember_password", true);
+                    editor.putString("username", username);
+                    editor.putString("password", "");
+                }
+                editor.apply();
+
+                Intent intent = new Intent(MainActivity.this, UserInfoActivity.class);
+                intent.putExtra("username", username);
+                startActivity(intent);
+
+            } else {
+                Toast.makeText(MainActivity.this, "用户名或密码错误", Toast.LENGTH_SHORT).show();
+                passwordEdit.requestFocus();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mAuthTask = null;
+            showProgress(false);
+        }
+    }
 }

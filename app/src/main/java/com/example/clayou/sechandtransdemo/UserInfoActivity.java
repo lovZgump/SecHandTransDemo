@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -33,6 +34,10 @@ import org.litepal.crud.DataSupport;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
 
 public class UserInfoActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -86,14 +91,22 @@ public class UserInfoActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        initCommodities();
+        new DataInit().execute();
 //        adapter = new CommodityAdapter(UserInfoActivity.this, R.layout.commodity, commodityList);
 //        ListView listView = findViewById(R.id.list_view);
 //        listView.setAdapter(adapter);
 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("bmob", "done: i'm here");
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        GridLayoutManager layoutManager = new GridLayoutManager(UserInfoActivity.this, 2);
         recyclerView.setLayoutManager(layoutManager);
+        Log.d("bmob", "onCreate: "+commodityList.size());
         commodityRecyAdapter = new CommodityRecyAdapter(commodityList);
         recyclerView.setAdapter(commodityRecyAdapter);
 
@@ -163,6 +176,12 @@ public class UserInfoActivity extends AppCompatActivity
         switch (requestCode) {
             case 1:
                 if(resultCode == RESULT_OK) {
+                    initCommodities();
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     refreshList();
                 }
                 break;
@@ -178,7 +197,6 @@ public class UserInfoActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        initCommodities();
                         commodityRecyAdapter.notifyDataSetChanged();
                     }
                 });
@@ -212,6 +230,7 @@ public class UserInfoActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            commodityRecyAdapter.notifyDataSetChanged();
             return true;
         }
 
@@ -251,20 +270,20 @@ public class UserInfoActivity extends AppCompatActivity
     private void initCommodities(){
 
         commodityList.clear();
-        Cursor cursor = DataSupport.findBySQL("select * from Commodity where owner = ?", username);
-        if(cursor.moveToFirst()){
-            do {
-                Commodity commodity = new Commodity();
-                commodity.setName(cursor.getString(cursor.getColumnIndex("name")));
-                commodity.setCategory(cursor.getString(cursor.getColumnIndex("category")));
-                commodity.setPrice(cursor.getDouble(cursor.getColumnIndex("price")));
-                commodity.setImagePath(cursor.getString(cursor.getColumnIndex("imagepath")));
-                commodity.setDescription(cursor.getString(cursor.getColumnIndex("description")));
-                commodity.setOwner(username);
-                commodityList.add(commodity);
-            }while (cursor.moveToNext());
-        }
-        cursor.close();
+//        Cursor cursor = DataSupport.findBySQL("select * from Commodity where owner = ?", username);
+//        if(cursor.moveToFirst()){
+//            do {
+//                Commodity commodity = new Commodity();
+//                commodity.setName(cursor.getString(cursor.getColumnIndex("name")));
+//                commodity.setCategory(cursor.getString(cursor.getColumnIndex("category")));
+//                commodity.setPrice(cursor.getDouble(cursor.getColumnIndex("price")));
+//                commodity.setImagePath(cursor.getString(cursor.getColumnIndex("imagepath")));
+//                commodity.setDescription(cursor.getString(cursor.getColumnIndex("description")));
+//                commodity.setOwner(username);
+//                commodityList.add(commodity);
+//            }while (cursor.moveToNext());
+//        }
+//        cursor.close();
 
 //        Log.d("flag", "initCommodities:" + username );
 //        List<Commodity> commodities = DataSupport.where("owner = ?", username).find(Commodity.class);
@@ -273,6 +292,26 @@ public class UserInfoActivity extends AppCompatActivity
 //            Log.d("flag", "initCommodities: " + commodity.getName());
 //            commodityList.add(commodity);
 //        }
+
+        BmobQuery<Commodity> query = new BmobQuery<>();
+        query.setLimit(50);
+        query.findObjects(new FindListener<Commodity>() {
+            @Override
+            public void done(List<Commodity> list, BmobException e) {
+                Log.d("bmob", "done: "+list.size());
+                if(e == null) {
+                    for (Commodity commodity : list) {
+                        Log.d("bmob", "done: "+commodity.getName()+commodity.getOwner()+"  "+commodity.getImagePath());
+                        commodityList.add(commodity);
+                    }
+                }else {
+                    Toast.makeText(UserInfoActivity.this, "失败", Toast.LENGTH_SHORT).show();
+                    Log.i("bmob","失败："+e.getMessage()+","+e.getErrorCode());
+                }
+                Log.d("bmob", "done: i'm here");
+            }
+        });
+        Log.d("bmob", "done: i'm here");
     }
 
     @Override
@@ -295,6 +334,25 @@ public class UserInfoActivity extends AppCompatActivity
             intent.addCategory(Intent.CATEGORY_HOME);
             startActivity(intent);
             System.exit(0);
+        }
+    }
+
+    public class DataInit extends AsyncTask<Void, Void, Boolean> {
+        DataInit(){}
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            initCommodities();
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean) {
+                //finish();
+                Log.d("bmob", "onPostExecute: "+commodityList.size());
+                commodityRecyAdapter.notifyDataSetChanged();
+            }
         }
     }
 

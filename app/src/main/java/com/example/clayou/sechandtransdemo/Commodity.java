@@ -2,11 +2,13 @@ package com.example.clayou.sechandtransdemo;
 
 import org.litepal.crud.DataSupport;
 
+import cn.bmob.v3.BmobObject;
+
 /**
  * Created by 10295 on 2018/4/13.
  */
 
-public class Commodity extends DataSupport {
+public class Commodity extends BmobObject {
 
     private String owner;
     private String name;

@@ -33,6 +33,9 @@ import org.litepal.crud.DataSupport;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.SaveListener;
+
 /**
  * A login screen that offers login via email/password.
  */
@@ -68,6 +71,8 @@ public class RegisterActivity extends AppCompatActivity implements LoaderCallbac
         setContentView(R.layout.activity_register);
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
+
+
 
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -161,8 +166,17 @@ public class RegisterActivity extends AppCompatActivity implements LoaderCallbac
             Account newUser = new Account();
             newUser.setUsername(email);
             newUser.setPassword(password);
-            newUser.save();
-            Toast.makeText(RegisterActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+            newUser.save(new SaveListener<String>() {
+                @Override
+                public void done(String s, BmobException e) {
+                    if (e == null ) {
+                        Toast.makeText(RegisterActivity.this, "注册成功", Toast.LENGTH_SHORT).show();
+                    }else {
+                        Toast.makeText(RegisterActivity.this, "注册失败", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
             Intent intent = new Intent();
             intent.putExtra("newUsername", email);
             intent.putExtra("newPassword", password);
@@ -175,12 +189,12 @@ public class RegisterActivity extends AppCompatActivity implements LoaderCallbac
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
 
-        List<Account> usernames = DataSupport.select("username").find(Account.class);
+        //List<Account> usernames = DataSupport.select("username").find(Account.class);
 
-        for(Account account : usernames){
-            if(account.equals(email))
-                return false;
-        }
+//        for(Account account : usernames){
+//            if(account.equals(email))
+//                return false;
+//        }
 
 
         return email.contains("@");
@@ -315,10 +329,6 @@ public class RegisterActivity extends AppCompatActivity implements LoaderCallbac
 //            }
 
             // TODO: register the new account here.
-            Account newUser = new Account();
-            newUser.setUsername(mEmail);
-            newUser.setPassword(mPassword);
-            newUser.save();
 
             return true;
         }
